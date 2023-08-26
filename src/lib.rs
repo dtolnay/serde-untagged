@@ -28,6 +28,7 @@ pub struct UntaggedEnumVisitor<'closure, 'de, Value> {
     visit_borrowed_bytes: Option<Box<dyn FnOnce(&'de [u8]) -> Result<Value, Error> + 'closure>>,
     visit_byte_buf: Option<Box<dyn FnOnce(Vec<u8>) -> Result<Value, Error> + 'closure>>,
     visit_unit: Option<Box<dyn FnOnce() -> Result<Value, Error> + 'closure>>,
+    visit_seq: Option<Box<dyn FnOnce(SeqAccess) -> Result<Value, Error> + 'closure>>,
 }
 
 impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
@@ -53,6 +54,7 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
             visit_borrowed_bytes: None,
             visit_byte_buf: None,
             visit_unit: None,
+            visit_seq: None,
         }
     }
 
@@ -162,6 +164,11 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
 
     pub fn unit(mut self, visit: impl FnOnce() -> Result<Value, Error> + 'closure) -> Self {
         self.visit_unit = Some(Box::new(visit));
+        self
+    }
+
+    pub fn seq(mut self, visit: impl FnOnce(SeqAccess) -> Result<Value, Error> + 'closure) -> Self {
+        self.visit_seq = Some(Box::new(visit));
         self
     }
 
@@ -397,6 +404,20 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
             visit_unit().map_err(error::convert)
         } else {
             DefaultVisitor::new(&self).visit_unit()
+        }
+    }
+
+    fn visit_seq<A>(self, seq: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::SeqAccess<'de>,
+    {
+        if let Some(visit_seq) = self.visit_seq {
+            let seq = SeqAccess {
+                erased: Box::new(seq),
+            };
+            visit_seq(seq).map_err(error::convert)
+        } else {
+            DefaultVisitor::new(&self).visit_seq(seq)
         }
     }
 }
