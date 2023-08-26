@@ -5,7 +5,7 @@ mod seed;
 mod seq;
 
 use serde::de::{Deserializer, Expected, MapAccess, SeqAccess, Visitor};
-use std::fmt;
+use std::fmt::{self, Display};
 use std::marker::PhantomData;
 
 pub use crate::error::Error;
@@ -13,6 +13,7 @@ pub use crate::map::Map;
 pub use crate::seq::Seq;
 
 pub struct UntaggedEnumVisitor<'closure, 'de, Value> {
+    expecting: Option<Box<dyn Display + 'closure>>,
     visit_bool: Option<Box<dyn FnOnce(bool) -> Result<Value, Error> + 'closure>>,
     visit_i8: Option<Box<dyn FnOnce(i8) -> Result<Value, Error> + 'closure>>,
     visit_i16: Option<Box<dyn FnOnce(i16) -> Result<Value, Error> + 'closure>>,
@@ -42,6 +43,7 @@ pub struct UntaggedEnumVisitor<'closure, 'de, Value> {
 impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
     pub fn new() -> Self {
         UntaggedEnumVisitor {
+            expecting: None,
             visit_bool: None,
             visit_i8: None,
             visit_i16: None,
@@ -65,6 +67,11 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
             visit_seq: None,
             visit_map: None,
         }
+    }
+
+    pub fn expecting(mut self, expecting: impl Display + 'closure) -> Self {
+        self.expecting = Some(Box::new(expecting));
+        self
     }
 
     pub fn bool(mut self, visit: impl FnOnce(bool) -> Result<Value, Error> + 'closure) -> Self {
@@ -204,6 +211,10 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
     type Value = Value;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        if let Some(expecting) = &self.expecting {
+            return expecting.fmt(formatter);
+        }
+
         // "a string or array"
         // "an integer, string, or map"
         let mut message = Expecting::new(formatter);

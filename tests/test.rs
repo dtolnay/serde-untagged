@@ -136,4 +136,18 @@ fn test_expecting() {
         .unwrap_err();
     let expected_message = "invalid type: null, expected a boolean, integer or array";
     assert_eq!(error.to_string(), expected_message);
+
+    let error = UntaggedEnumVisitor::<()>::new()
+        .deserialize(&serde_json::Value::Null)
+        .unwrap_err();
+    let expected_message = "invalid type: null, expected unspecified";
+    assert_eq!(error.to_string(), expected_message);
+
+    let ty = "T";
+    let error = UntaggedEnumVisitor::<()>::new()
+        .expecting(format_args!("foo of type {ty}"))
+        .deserialize(&serde_json::Value::Null)
+        .unwrap_err();
+    let expected_message = "invalid type: null, expected foo of type T";
+    assert_eq!(error.to_string(), expected_message);
 }
