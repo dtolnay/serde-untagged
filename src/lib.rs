@@ -1,6 +1,6 @@
 mod error;
 
-use serde::de::{DeserializeSeed, Deserializer, Expected, Visitor};
+use serde::de::{DeserializeSeed, Deserializer, Expected, MapAccess, SeqAccess, Visitor};
 use std::fmt;
 use std::marker::PhantomData;
 use std::mem;
@@ -28,8 +28,8 @@ pub struct UntaggedEnumVisitor<'closure, 'de, Value> {
     visit_borrowed_bytes: Option<Box<dyn FnOnce(&'de [u8]) -> Result<Value, Error> + 'closure>>,
     visit_byte_buf: Option<Box<dyn FnOnce(Vec<u8>) -> Result<Value, Error> + 'closure>>,
     visit_unit: Option<Box<dyn FnOnce() -> Result<Value, Error> + 'closure>>,
-    visit_seq: Option<Box<dyn FnOnce(SeqAccess) -> Result<Value, Error> + 'closure>>,
-    visit_map: Option<Box<dyn FnOnce(MapAccess) -> Result<Value, Error> + 'closure>>,
+    visit_seq: Option<Box<dyn FnOnce(Seq) -> Result<Value, Error> + 'closure>>,
+    visit_map: Option<Box<dyn FnOnce(Map) -> Result<Value, Error> + 'closure>>,
 }
 
 impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
@@ -169,12 +169,12 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
         self
     }
 
-    pub fn seq(mut self, visit: impl FnOnce(SeqAccess) -> Result<Value, Error> + 'closure) -> Self {
+    pub fn seq(mut self, visit: impl FnOnce(Seq) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_seq = Some(Box::new(visit));
         self
     }
 
-    pub fn map(mut self, visit: impl FnOnce(MapAccess) -> Result<Value, Error> + 'closure) -> Self {
+    pub fn map(mut self, visit: impl FnOnce(Map) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_map = Some(Box::new(visit));
         self
     }
@@ -416,10 +416,10 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
 
     fn visit_seq<A>(self, seq: A) -> Result<Self::Value, A::Error>
     where
-        A: serde::de::SeqAccess<'de>,
+        A: SeqAccess<'de>,
     {
         if let Some(visit_seq) = self.visit_seq {
-            let seq = SeqAccess {
+            let seq = Seq {
                 erased: Box::new(seq),
             };
             visit_seq(seq).map_err(error::convert)
@@ -430,10 +430,10 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
 
     fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
     where
-        A: serde::de::MapAccess<'de>,
+        A: MapAccess<'de>,
     {
         if let Some(visit_map) = self.visit_map {
-            let map = MapAccess {
+            let map = Map {
                 erased: Box::new(map),
             };
             visit_map(map).map_err(error::convert)
@@ -543,11 +543,11 @@ trait ErasedSeqAccess<'de> {
     fn erased_size_hint(&self) -> Option<usize>;
 }
 
-pub struct SeqAccess<'closure, 'de> {
+pub struct Seq<'closure, 'de> {
     erased: Box<dyn ErasedSeqAccess<'de> + 'closure>,
 }
 
-impl<'closure, 'de> serde::de::SeqAccess<'de> for SeqAccess<'closure, 'de> {
+impl<'closure, 'de> SeqAccess<'de> for Seq<'closure, 'de> {
     type Error = Error;
 
     fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
@@ -569,7 +569,7 @@ impl<'closure, 'de> serde::de::SeqAccess<'de> for SeqAccess<'closure, 'de> {
 
 impl<'de, Access> ErasedSeqAccess<'de> for Access
 where
-    Access: serde::de::SeqAccess<'de>,
+    Access: SeqAccess<'de>,
 {
     fn erased_next_element_seed(
         &mut self,
@@ -598,11 +598,11 @@ trait ErasedMapAccess<'de> {
     fn erased_size_hint(&self) -> Option<usize>;
 }
 
-pub struct MapAccess<'closure, 'de> {
+pub struct Map<'closure, 'de> {
     erased: Box<dyn ErasedMapAccess<'de> + 'closure>,
 }
 
-impl<'closure, 'de> serde::de::MapAccess<'de> for MapAccess<'closure, 'de> {
+impl<'closure, 'de> MapAccess<'de> for Map<'closure, 'de> {
     type Error = Error;
 
     fn next_key_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
@@ -633,7 +633,7 @@ impl<'closure, 'de> serde::de::MapAccess<'de> for MapAccess<'closure, 'de> {
 
 impl<'de, Access> ErasedMapAccess<'de> for Access
 where
-    Access: serde::de::MapAccess<'de>,
+    Access: MapAccess<'de>,
 {
     fn erased_next_key_seed(
         &mut self,
