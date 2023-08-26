@@ -37,7 +37,7 @@ impl<'access, 'de> SeqAccess<'de> for Seq<'access, 'de> {
         self.erased
             .erased_next_element_seed(&mut Some(seed))
             .map(|erased_value| match erased_value {
-                Some(value) => unsafe { ErasedValue::take(value) },
+                Some(value) => Some(unsafe { ErasedValue::take::<T::Value>(value) }),
                 None => None,
             })
     }

@@ -42,7 +42,7 @@ impl<'access, 'de> MapAccess<'de> for Map<'access, 'de> {
         self.erased
             .erased_next_key_seed(&mut Some(seed))
             .map(|erased_value| match erased_value {
-                Some(value) => unsafe { ErasedValue::take(value) },
+                Some(value) => Some(unsafe { ErasedValue::take::<T::Value>(value) }),
                 None => None,
             })
     }
@@ -53,7 +53,7 @@ impl<'access, 'de> MapAccess<'de> for Map<'access, 'de> {
     {
         self.erased
             .erased_next_value_seed(&mut Some(seed))
-            .map(|erased_value| unsafe { ErasedValue::take(erased_value) })
+            .map(|erased_value| unsafe { ErasedValue::take::<T::Value>(erased_value) })
     }
 
     fn size_hint(&self) -> Option<usize> {

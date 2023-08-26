@@ -19,7 +19,7 @@ where
         self.take()
             .unwrap()
             .deserialize(deserializer)
-            .map(|value| unsafe { ErasedValue::new(value) })
+            .map(|value| unsafe { ErasedValue::new::<Seed::Value>(value) })
     }
 }
 
