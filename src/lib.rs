@@ -29,6 +29,7 @@ pub struct UntaggedEnumVisitor<'closure, 'de, Value> {
     visit_byte_buf: Option<Box<dyn FnOnce(Vec<u8>) -> Result<Value, Error> + 'closure>>,
     visit_unit: Option<Box<dyn FnOnce() -> Result<Value, Error> + 'closure>>,
     visit_seq: Option<Box<dyn FnOnce(SeqAccess) -> Result<Value, Error> + 'closure>>,
+    visit_map: Option<Box<dyn FnOnce(MapAccess) -> Result<Value, Error> + 'closure>>,
 }
 
 impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
@@ -55,6 +56,7 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
             visit_byte_buf: None,
             visit_unit: None,
             visit_seq: None,
+            visit_map: None,
         }
     }
 
@@ -169,6 +171,11 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
 
     pub fn seq(mut self, visit: impl FnOnce(SeqAccess) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_seq = Some(Box::new(visit));
+        self
+    }
+
+    pub fn map(mut self, visit: impl FnOnce(MapAccess) -> Result<Value, Error> + 'closure) -> Self {
+        self.visit_map = Some(Box::new(visit));
         self
     }
 
@@ -418,6 +425,20 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
             visit_seq(seq).map_err(error::convert)
         } else {
             DefaultVisitor::new(&self).visit_seq(seq)
+        }
+    }
+
+    fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        if let Some(visit_map) = self.visit_map {
+            let map = MapAccess {
+                erased: Box::new(map),
+            };
+            visit_map(map).map_err(error::convert)
+        } else {
+            DefaultVisitor::new(&self).visit_map(map)
         }
     }
 }
