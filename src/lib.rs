@@ -204,7 +204,53 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
     type Value = Value;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("TODO")
+        // "a string or array"
+        // "an integer, string, or map"
+        let mut message = Expecting::new(formatter);
+        if self.visit_bool.is_some() {
+            message.push("a", "boolean")?;
+        }
+        if self.visit_i8.is_some()
+            || self.visit_i16.is_some()
+            || self.visit_i32.is_some()
+            || self.visit_i64.is_some()
+            || self.visit_i128.is_some()
+            || self.visit_u8.is_some()
+            || self.visit_u16.is_some()
+            || self.visit_u32.is_some()
+            || self.visit_u64.is_some()
+            || self.visit_u128.is_some()
+        {
+            message.push("an", "integer")?;
+        }
+        if self.visit_f32.is_some() || self.visit_f64.is_some() {
+            message.push("a", "float")?;
+        }
+        if self.visit_char.is_some() {
+            message.push("a", "character")?;
+        }
+        if self.visit_str.is_some() {
+            message.push("a", "string")?;
+        }
+        if self.visit_borrowed_str.is_some() && self.visit_str.is_none() {
+            message.push("a", "borrowed string")?;
+        }
+        if self.visit_bytes.is_some()
+            || self.visit_borrowed_bytes.is_some()
+            || self.visit_byte_buf.is_some()
+        {
+            message.push("a", "byte array")?;
+        }
+        if self.visit_unit.is_some() {
+            message.push("", "null")?;
+        }
+        if self.visit_seq.is_some() {
+            message.push("an", "array")?;
+        }
+        if self.visit_map.is_some() {
+            message.push("a", "map")?;
+        }
+        message.flush()
     }
 
     fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>
@@ -472,5 +518,50 @@ where
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         self.expected.fmt(formatter)
+    }
+}
+
+struct Expecting<'e, 'a> {
+    formatter: &'e mut fmt::Formatter<'a>,
+    count: usize,
+    last: Option<&'e str>,
+}
+
+impl<'e, 'a> Expecting<'e, 'a> {
+    fn new(formatter: &'e mut fmt::Formatter<'a>) -> Self {
+        Expecting {
+            formatter,
+            count: 0,
+            last: None,
+        }
+    }
+
+    fn push(&mut self, article: &str, item: &'e str) -> fmt::Result {
+        self.count += 1;
+        if self.count == 1 {
+            if !article.is_empty() {
+                self.formatter.write_str(article)?;
+                self.formatter.write_str(" ")?;
+            }
+            self.formatter.write_str(item)?;
+        } else {
+            if let Some(last) = self.last.take() {
+                self.formatter.write_str(", ")?;
+                self.formatter.write_str(last)?;
+            }
+            self.last = Some(item);
+        }
+        Ok(())
+    }
+
+    fn flush(&mut self) -> fmt::Result {
+        if self.count == 0 {
+            self.formatter.write_str("unspecified") // ??
+        } else if let Some(last) = self.last.take() {
+            self.formatter.write_str(" or ")?;
+            self.formatter.write_str(last)
+        } else {
+            Ok(())
+        }
     }
 }
