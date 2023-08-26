@@ -1,11 +1,16 @@
+mod any;
 mod error;
+mod map;
+mod seed;
+mod seq;
 
-use serde::de::{DeserializeSeed, Deserializer, Expected, MapAccess, SeqAccess, Visitor};
+use serde::de::{Deserializer, Expected, MapAccess, SeqAccess, Visitor};
 use std::fmt;
 use std::marker::PhantomData;
-use std::mem;
 
 pub use crate::error::Error;
+pub use crate::map::Map;
+pub use crate::seq::Seq;
 
 pub struct UntaggedEnumVisitor<'closure, 'de, Value> {
     visit_bool: Option<Box<dyn FnOnce(bool) -> Result<Value, Error> + 'closure>>,
@@ -419,10 +424,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         A: SeqAccess<'de>,
     {
         if let Some(visit_seq) = self.visit_seq {
-            let seq = Seq {
-                erased: Box::new(seq),
-            };
-            visit_seq(seq).map_err(error::convert)
+            visit_seq(Seq::new(seq)).map_err(error::convert)
         } else {
             DefaultVisitor::new(&self).visit_seq(seq)
         }
@@ -433,10 +435,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         A: MapAccess<'de>,
     {
         if let Some(visit_map) = self.visit_map {
-            let map = Map {
-                erased: Box::new(map),
-            };
-            visit_map(map).map_err(error::convert)
+            visit_map(Map::new(map)).map_err(error::convert)
         } else {
             DefaultVisitor::new(&self).visit_map(map)
         }
@@ -465,191 +464,5 @@ where
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         self.expected.fmt(formatter)
-    }
-}
-
-struct ErasedValue {
-    ptr: *mut (),
-    drop: unsafe fn(*mut ()),
-}
-
-impl ErasedValue {
-    unsafe fn new<T>(value: T) -> Self {
-        ErasedValue {
-            ptr: Box::into_raw(Box::new(value)).cast(),
-            drop: {
-                unsafe fn drop<T>(ptr: *mut ()) {
-                    let _ = Box::from_raw(ptr.cast::<T>());
-                }
-                drop::<T>
-            },
-        }
-    }
-
-    unsafe fn take<T>(self) -> T {
-        let b = Box::from_raw(self.ptr.cast::<T>());
-        mem::forget(self);
-        *b
-    }
-}
-
-impl Drop for ErasedValue {
-    fn drop(&mut self) {
-        unsafe { (self.drop)(self.ptr) }
-    }
-}
-
-trait ErasedDeserializeSeed<'de> {
-    fn erased_deserialize(
-        &mut self,
-        deserializer: Box<dyn erased_serde::Deserializer<'de> + '_>,
-    ) -> Result<ErasedValue, erased_serde::Error>;
-}
-
-impl<'de, Seed> ErasedDeserializeSeed<'de> for Option<Seed>
-where
-    Seed: serde::de::DeserializeSeed<'de>,
-{
-    fn erased_deserialize(
-        &mut self,
-        deserializer: Box<dyn erased_serde::Deserializer<'de> + '_>,
-    ) -> Result<ErasedValue, erased_serde::Error> {
-        self.take()
-            .unwrap()
-            .deserialize(deserializer)
-            .map(|value| unsafe { ErasedValue::new(value) })
-    }
-}
-
-impl<'de> DeserializeSeed<'de> for &mut dyn ErasedDeserializeSeed<'de> {
-    type Value = ErasedValue;
-
-    fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let deserializer = Box::new(<dyn erased_serde::Deserializer>::erase(deserializer));
-        self.erased_deserialize(deserializer)
-            .map_err(serde::de::Error::custom)
-    }
-}
-
-trait ErasedSeqAccess<'de> {
-    fn erased_next_element_seed(
-        &mut self,
-        seed: &mut dyn ErasedDeserializeSeed<'de>,
-    ) -> Result<Option<ErasedValue>, Error>;
-
-    fn erased_size_hint(&self) -> Option<usize>;
-}
-
-pub struct Seq<'closure, 'de> {
-    erased: Box<dyn ErasedSeqAccess<'de> + 'closure>,
-}
-
-impl<'closure, 'de> SeqAccess<'de> for Seq<'closure, 'de> {
-    type Error = Error;
-
-    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
-    where
-        T: DeserializeSeed<'de>,
-    {
-        self.erased
-            .erased_next_element_seed(&mut Some(seed))
-            .map(|erased_value| match erased_value {
-                Some(value) => unsafe { ErasedValue::take(value) },
-                None => None,
-            })
-    }
-
-    fn size_hint(&self) -> Option<usize> {
-        self.erased.erased_size_hint()
-    }
-}
-
-impl<'de, Access> ErasedSeqAccess<'de> for Access
-where
-    Access: SeqAccess<'de>,
-{
-    fn erased_next_element_seed(
-        &mut self,
-        seed: &mut dyn ErasedDeserializeSeed<'de>,
-    ) -> Result<Option<ErasedValue>, Error> {
-        self.next_element_seed(seed)
-            .map_err(serde::de::Error::custom)
-    }
-
-    fn erased_size_hint(&self) -> Option<usize> {
-        self.size_hint()
-    }
-}
-
-trait ErasedMapAccess<'de> {
-    fn erased_next_key_seed(
-        &mut self,
-        seed: &mut dyn ErasedDeserializeSeed<'de>,
-    ) -> Result<Option<ErasedValue>, Error>;
-
-    fn erased_next_value_seed(
-        &mut self,
-        seed: &mut dyn ErasedDeserializeSeed<'de>,
-    ) -> Result<ErasedValue, Error>;
-
-    fn erased_size_hint(&self) -> Option<usize>;
-}
-
-pub struct Map<'closure, 'de> {
-    erased: Box<dyn ErasedMapAccess<'de> + 'closure>,
-}
-
-impl<'closure, 'de> MapAccess<'de> for Map<'closure, 'de> {
-    type Error = Error;
-
-    fn next_key_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
-    where
-        T: DeserializeSeed<'de>,
-    {
-        self.erased
-            .erased_next_key_seed(&mut Some(seed))
-            .map(|erased_value| match erased_value {
-                Some(value) => unsafe { ErasedValue::take(value) },
-                None => None,
-            })
-    }
-
-    fn next_value_seed<T>(&mut self, seed: T) -> Result<T::Value, Self::Error>
-    where
-        T: DeserializeSeed<'de>,
-    {
-        self.erased
-            .erased_next_value_seed(&mut Some(seed))
-            .map(|erased_value| unsafe { ErasedValue::take(erased_value) })
-    }
-
-    fn size_hint(&self) -> Option<usize> {
-        self.erased.erased_size_hint()
-    }
-}
-
-impl<'de, Access> ErasedMapAccess<'de> for Access
-where
-    Access: MapAccess<'de>,
-{
-    fn erased_next_key_seed(
-        &mut self,
-        seed: &mut dyn ErasedDeserializeSeed<'de>,
-    ) -> Result<Option<ErasedValue>, Error> {
-        self.next_key_seed(seed).map_err(serde::de::Error::custom)
-    }
-
-    fn erased_next_value_seed(
-        &mut self,
-        seed: &mut dyn ErasedDeserializeSeed<'de>,
-    ) -> Result<ErasedValue, Error> {
-        self.next_value_seed(seed).map_err(serde::de::Error::custom)
-    }
-
-    fn erased_size_hint(&self) -> Option<usize> {
-        self.size_hint()
     }
 }
