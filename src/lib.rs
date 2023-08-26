@@ -6,13 +6,17 @@ use std::marker::PhantomData;
 
 pub use crate::error::Error;
 
-pub struct UntaggedEnumVisitor<'closure, Value> {
+pub struct UntaggedEnumVisitor<'closure, 'de, Value> {
     visit_str: Option<Box<dyn FnOnce(&str) -> Result<Value, Error> + 'closure>>,
+    visit_borrowed_str: Option<Box<dyn FnOnce(&'de str) -> Result<Value, Error> + 'closure>>,
 }
 
-impl<'closure, Value> UntaggedEnumVisitor<'closure, Value> {
+impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
     pub fn new() -> Self {
-        UntaggedEnumVisitor { visit_str: None }
+        UntaggedEnumVisitor {
+            visit_str: None,
+            visit_borrowed_str: None,
+        }
     }
 
     pub fn string(mut self, visit: impl FnOnce(&str) -> Result<Value, Error> + 'closure) -> Self {
@@ -20,7 +24,15 @@ impl<'closure, Value> UntaggedEnumVisitor<'closure, Value> {
         self
     }
 
-    pub fn deserialize<'de, D>(self, deserializer: D) -> Result<Value, D::Error>
+    pub fn borrowed_str(
+        mut self,
+        visit: impl FnOnce(&'de str) -> Result<Value, Error> + 'closure,
+    ) -> Self {
+        self.visit_borrowed_str = Some(Box::new(visit));
+        self
+    }
+
+    pub fn deserialize<D>(self, deserializer: D) -> Result<Value, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -28,7 +40,7 @@ impl<'closure, Value> UntaggedEnumVisitor<'closure, Value> {
     }
 }
 
-impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, Value> {
+impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, Value> {
     type Value = Value;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -43,6 +55,17 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, Value>
             visit_str(v).map_err(error::convert)
         } else {
             DefaultVisitor::new(&self).visit_str(v)
+        }
+    }
+
+    fn visit_borrowed_str<E>(self, v: &'de str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_borrowed_str) = self.visit_borrowed_str {
+            visit_borrowed_str(v).map_err(error::convert)
+        } else {
+            self.visit_str(v)
         }
     }
 }
