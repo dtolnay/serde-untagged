@@ -1,7 +1,7 @@
 use crate::any::ErasedValue;
 use crate::error::Error;
 use crate::seed::ErasedDeserializeSeed;
-use serde::de::{DeserializeSeed, SeqAccess};
+use serde::de::{Deserialize, DeserializeSeed, SeqAccess};
 
 trait ErasedSeqAccess<'de> {
     fn erased_next_element_seed(
@@ -24,6 +24,13 @@ impl<'access, 'de> Seq<'access, 'de> {
         Seq {
             erased: Box::new(seq),
         }
+    }
+
+    pub fn deserialize<T>(self) -> Result<T, Error>
+    where
+        T: Deserialize<'de>,
+    {
+        T::deserialize(serde::de::value::SeqAccessDeserializer::new(self))
     }
 }
 

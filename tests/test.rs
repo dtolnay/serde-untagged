@@ -51,13 +51,7 @@ fn test_borrowed() {
         {
             UntaggedEnumVisitor::new()
                 .borrowed_str(|string| Ok(Value::Single(string)))
-                .seq(|mut seq| {
-                    let mut array = Vec::new();
-                    while let Some(element) = seq.next_element()? {
-                        array.push(element);
-                    }
-                    Ok(Value::Multiple(array))
-                })
+                .seq(|seq| seq.deserialize().map(Value::Multiple))
                 .deserialize(deserializer)
         }
     }

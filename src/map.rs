@@ -1,7 +1,7 @@
 use crate::any::ErasedValue;
 use crate::error::Error;
 use crate::seed::ErasedDeserializeSeed;
-use serde::de::{DeserializeSeed, MapAccess};
+use serde::de::{Deserialize, DeserializeSeed, MapAccess};
 
 trait ErasedMapAccess<'de> {
     fn erased_next_key_seed(
@@ -29,6 +29,13 @@ impl<'access, 'de> Map<'access, 'de> {
         Map {
             erased: Box::new(map),
         }
+    }
+
+    pub fn deserialize<T>(self) -> Result<T, Error>
+    where
+        T: Deserialize<'de>,
+    {
+        T::deserialize(serde::de::value::MapAccessDeserializer::new(self))
     }
 }
 
