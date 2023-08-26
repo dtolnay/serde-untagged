@@ -5,6 +5,10 @@ pub struct Error {
     imp: ErrorImpl,
 }
 
+pub(crate) fn convert<E: serde::de::Error>(err: Error) -> E {
+    err.as_serde()
+}
+
 impl std::error::Error for Error {}
 
 impl Display for Error {

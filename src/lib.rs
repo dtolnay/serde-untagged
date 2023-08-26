@@ -1,18 +1,22 @@
 mod error;
 
-use serde::de::{Deserializer, Visitor};
+use serde::de::{Deserializer, Unexpected, Visitor};
 use std::fmt;
-use std::marker::PhantomData;
 
 pub use crate::error::Error;
 
-pub struct UntaggedEnumVisitor<Value> {
-    value: PhantomData<Value>,
+pub struct UntaggedEnumVisitor<'closure, Value> {
+    visit_str: Option<Box<dyn FnOnce(&str) -> Result<Value, Error> + 'closure>>,
 }
 
-impl<Value> UntaggedEnumVisitor<Value> {
+impl<'closure, Value> UntaggedEnumVisitor<'closure, Value> {
     pub fn new() -> Self {
-        UntaggedEnumVisitor { value: PhantomData }
+        UntaggedEnumVisitor { visit_str: None }
+    }
+
+    pub fn string(mut self, visit: impl FnOnce(&str) -> Result<Value, Error> + 'closure) -> Self {
+        self.visit_str = Some(Box::new(visit));
+        self
     }
 
     pub fn deserialize<'de, D>(self, deserializer: D) -> Result<Value, D::Error>
@@ -23,10 +27,21 @@ impl<Value> UntaggedEnumVisitor<Value> {
     }
 }
 
-impl<'de, Value> Visitor<'de> for UntaggedEnumVisitor<Value> {
+impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, Value> {
     type Value = Value;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         formatter.write_str("TODO")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_str) = self.visit_str {
+            visit_str(v).map_err(error::convert)
+        } else {
+            Err(E::invalid_type(Unexpected::Str(v), &self))
+        }
     }
 }
