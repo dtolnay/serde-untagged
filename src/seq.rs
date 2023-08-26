@@ -12,14 +12,14 @@ trait ErasedSeqAccess<'de> {
     fn erased_size_hint(&self) -> Option<usize>;
 }
 
-pub struct Seq<'closure, 'de> {
-    erased: Box<dyn ErasedSeqAccess<'de> + 'closure>,
+pub struct Seq<'access, 'de> {
+    erased: Box<dyn ErasedSeqAccess<'de> + 'access>,
 }
 
-impl<'closure, 'de> Seq<'closure, 'de> {
+impl<'access, 'de> Seq<'access, 'de> {
     pub(crate) fn new<A>(seq: A) -> Self
     where
-        A: SeqAccess<'de> + 'closure,
+        A: SeqAccess<'de> + 'access,
     {
         Seq {
             erased: Box::new(seq),
@@ -27,7 +27,7 @@ impl<'closure, 'de> Seq<'closure, 'de> {
     }
 }
 
-impl<'closure, 'de> SeqAccess<'de> for Seq<'closure, 'de> {
+impl<'access, 'de> SeqAccess<'de> for Seq<'access, 'de> {
     type Error = Error;
 
     fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>

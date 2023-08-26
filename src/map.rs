@@ -17,14 +17,14 @@ trait ErasedMapAccess<'de> {
     fn erased_size_hint(&self) -> Option<usize>;
 }
 
-pub struct Map<'closure, 'de> {
-    erased: Box<dyn ErasedMapAccess<'de> + 'closure>,
+pub struct Map<'access, 'de> {
+    erased: Box<dyn ErasedMapAccess<'de> + 'access>,
 }
 
-impl<'closure, 'de> Map<'closure, 'de> {
+impl<'access, 'de> Map<'access, 'de> {
     pub(crate) fn new<A>(map: A) -> Self
     where
-        A: MapAccess<'de> + 'closure,
+        A: MapAccess<'de> + 'access,
     {
         Map {
             erased: Box::new(map),
@@ -32,7 +32,7 @@ impl<'closure, 'de> Map<'closure, 'de> {
     }
 }
 
-impl<'closure, 'de> MapAccess<'de> for Map<'closure, 'de> {
+impl<'access, 'de> MapAccess<'de> for Map<'access, 'de> {
     type Error = Error;
 
     fn next_key_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>

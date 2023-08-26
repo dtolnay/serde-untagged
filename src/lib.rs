@@ -33,8 +33,10 @@ pub struct UntaggedEnumVisitor<'closure, 'de, Value> {
     visit_borrowed_bytes: Option<Box<dyn FnOnce(&'de [u8]) -> Result<Value, Error> + 'closure>>,
     visit_byte_buf: Option<Box<dyn FnOnce(Vec<u8>) -> Result<Value, Error> + 'closure>>,
     visit_unit: Option<Box<dyn FnOnce() -> Result<Value, Error> + 'closure>>,
-    visit_seq: Option<Box<dyn FnOnce(Seq) -> Result<Value, Error> + 'closure>>,
-    visit_map: Option<Box<dyn FnOnce(Map) -> Result<Value, Error> + 'closure>>,
+    visit_seq:
+        Option<Box<dyn for<'access> FnOnce(Seq<'access, 'de>) -> Result<Value, Error> + 'closure>>,
+    visit_map:
+        Option<Box<dyn for<'access> FnOnce(Map<'access, 'de>) -> Result<Value, Error> + 'closure>>,
 }
 
 impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
@@ -174,12 +176,18 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
         self
     }
 
-    pub fn seq(mut self, visit: impl FnOnce(Seq) -> Result<Value, Error> + 'closure) -> Self {
+    pub fn seq(
+        mut self,
+        visit: impl for<'access> FnOnce(Seq<'access, 'de>) -> Result<Value, Error> + 'closure,
+    ) -> Self {
         self.visit_seq = Some(Box::new(visit));
         self
     }
 
-    pub fn map(mut self, visit: impl FnOnce(Map) -> Result<Value, Error> + 'closure) -> Self {
+    pub fn map(
+        mut self,
+        visit: impl for<'access> FnOnce(Map<'access, 'de>) -> Result<Value, Error> + 'closure,
+    ) -> Self {
         self.visit_map = Some(Box::new(visit));
         self
     }
