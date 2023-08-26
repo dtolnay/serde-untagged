@@ -1,3 +1,5 @@
+mod error;
+
 use serde::de::{Deserializer, Visitor};
 use std::fmt;
 use std::marker::PhantomData;
