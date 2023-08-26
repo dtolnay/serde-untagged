@@ -100,3 +100,40 @@ fn test_contains_map_key() {
     let v: Response = serde_json::from_str(j).unwrap();
     assert_eq!(v, Response::Success(json!({"ok":200})));
 }
+
+#[test]
+fn test_expecting() {
+    let error = UntaggedEnumVisitor::new()
+        .seq(|_seq| Ok(()))
+        .deserialize(&serde_json::Value::Null)
+        .unwrap_err();
+    let expected_message = "invalid type: null, expected an array";
+    assert_eq!(error.to_string(), expected_message);
+
+    let error = UntaggedEnumVisitor::new()
+        .seq(|_seq| Ok(()))
+        .bool(|_bool| Ok(()))
+        .deserialize(&serde_json::Value::Null)
+        .unwrap_err();
+    let expected_message = "invalid type: null, expected a boolean or array";
+    assert_eq!(error.to_string(), expected_message);
+
+    let error = UntaggedEnumVisitor::new()
+        .seq(|_seq| Ok(()))
+        .bool(|_bool| Ok(()))
+        .i8(|_int| Ok(()))
+        .deserialize(&serde_json::Value::Null)
+        .unwrap_err();
+    let expected_message = "invalid type: null, expected a boolean, integer or array";
+    assert_eq!(error.to_string(), expected_message);
+
+    let error = UntaggedEnumVisitor::new()
+        .seq(|_seq| Ok(()))
+        .bool(|_bool| Ok(()))
+        .i8(|_int| Ok(()))
+        .i16(|_int| Ok(()))
+        .deserialize(&serde_json::Value::Null)
+        .unwrap_err();
+    let expected_message = "invalid type: null, expected a boolean, integer or array";
+    assert_eq!(error.to_string(), expected_message);
+}
