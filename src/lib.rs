@@ -1,6 +1,6 @@
 mod error;
 
-use serde::de::{Deserializer, Unexpected, Visitor};
+use serde::de::{Deserializer, Visitor};
 use std::fmt;
 
 pub use crate::error::Error;
@@ -41,7 +41,20 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, Value>
         if let Some(visit_str) = self.visit_str {
             visit_str(v).map_err(error::convert)
         } else {
-            Err(E::invalid_type(Unexpected::Str(v), &self))
+            DefaultVisitor(&self).visit_str(v)
         }
+    }
+}
+
+struct DefaultVisitor<'a, V>(&'a V);
+
+impl<'a, 'de, V> Visitor<'de> for DefaultVisitor<'a, V>
+where
+    V: Visitor<'de>,
+{
+    type Value = V::Value;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        self.0.expecting(formatter)
     }
 }
