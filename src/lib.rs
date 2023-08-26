@@ -491,3 +491,53 @@ impl<'de> DeserializeSeed<'de> for &mut dyn ErasedDeserializeSeed<'de> {
             .map_err(serde::de::Error::custom)
     }
 }
+
+trait ErasedSeqAccess<'de> {
+    fn erased_next_element_seed(
+        &mut self,
+        seed: &mut dyn ErasedDeserializeSeed<'de>,
+    ) -> Result<Option<ErasedValue>, Error>;
+
+    fn erased_size_hint(&self) -> Option<usize>;
+}
+
+pub struct SeqAccess<'closure, 'de> {
+    erased: Box<dyn ErasedSeqAccess<'de> + 'closure>,
+}
+
+impl<'closure, 'de> serde::de::SeqAccess<'de> for SeqAccess<'closure, 'de> {
+    type Error = Error;
+
+    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
+    where
+        T: DeserializeSeed<'de>,
+    {
+        self.erased
+            .erased_next_element_seed(&mut Some(seed))
+            .map(|erased_value| match erased_value {
+                Some(value) => unsafe { ErasedValue::take(value) },
+                None => None,
+            })
+    }
+
+    fn size_hint(&self) -> Option<usize> {
+        self.erased.erased_size_hint()
+    }
+}
+
+impl<'de, Access> ErasedSeqAccess<'de> for Access
+where
+    Access: serde::de::SeqAccess<'de>,
+{
+    fn erased_next_element_seed(
+        &mut self,
+        seed: &mut dyn ErasedDeserializeSeed<'de>,
+    ) -> Result<Option<ErasedValue>, Error> {
+        self.next_element_seed(seed)
+            .map_err(serde::de::Error::custom)
+    }
+
+    fn erased_size_hint(&self) -> Option<usize> {
+        self.size_hint()
+    }
+}
