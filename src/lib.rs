@@ -4,13 +4,18 @@ mod map;
 mod seed;
 mod seq;
 
+use crate::error::Error;
+use crate::map::Map;
+use crate::seq::Seq;
 use serde::de::{Deserializer, Expected, MapAccess, SeqAccess, Visitor};
 use std::fmt::{self, Display};
 use std::marker::PhantomData;
 
-pub use crate::error::Error;
-pub use crate::map::Map;
-pub use crate::seq::Seq;
+pub mod de {
+    pub use crate::error::Error;
+    pub use crate::map::Map;
+    pub use crate::seq::Seq;
+}
 
 pub struct UntaggedEnumVisitor<'closure, 'de, Value> {
     expecting: Option<Box<dyn Display + 'closure>>,
