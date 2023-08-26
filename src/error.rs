@@ -1,3 +1,5 @@
+use std::fmt::{self, Debug, Display};
+
 pub enum Error {
     Custom(String),
     InvalidType {
@@ -26,6 +28,22 @@ pub enum Error {
     DuplicateField {
         field: &'static str,
     },
+}
+
+impl std::error::Error for Error {}
+
+impl Display for Error {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        let error = self.as_serde::<serde::de::value::Error>();
+        Display::fmt(&error, formatter)
+    }
+}
+
+impl Debug for Error {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        let error = self.as_serde::<serde::de::value::Error>();
+        Debug::fmt(&error, formatter)
+    }
 }
 
 pub enum Unexpected {
