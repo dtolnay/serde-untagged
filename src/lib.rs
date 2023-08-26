@@ -179,6 +179,160 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         formatter.write_str("TODO")
     }
 
+    fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_bool) = self.visit_bool {
+            visit_bool(v).map_err(error::convert)
+        } else {
+            DefaultVisitor::new(&self).visit_bool(v)
+        }
+    }
+
+    fn visit_i8<E>(self, v: i8) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_i8) = self.visit_i8 {
+            visit_i8(v).map_err(error::convert)
+        } else {
+            self.visit_i64(v as i64)
+        }
+    }
+
+    fn visit_i16<E>(self, v: i16) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_i16) = self.visit_i16 {
+            visit_i16(v).map_err(error::convert)
+        } else {
+            self.visit_i64(v as i64)
+        }
+    }
+
+    fn visit_i32<E>(self, v: i32) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_i32) = self.visit_i32 {
+            visit_i32(v).map_err(error::convert)
+        } else {
+            self.visit_i64(v as i64)
+        }
+    }
+
+    fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_i64) = self.visit_i64 {
+            visit_i64(v).map_err(error::convert)
+        } else {
+            DefaultVisitor::new(&self).visit_i64(v)
+        }
+    }
+
+    fn visit_i128<E>(self, v: i128) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_i128) = self.visit_i128 {
+            visit_i128(v).map_err(error::convert)
+        } else {
+            DefaultVisitor::new(&self).visit_i128(v)
+        }
+    }
+
+    fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_u8) = self.visit_u8 {
+            visit_u8(v).map_err(error::convert)
+        } else {
+            self.visit_u64(v as u64)
+        }
+    }
+
+    fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_u16) = self.visit_u16 {
+            visit_u16(v).map_err(error::convert)
+        } else {
+            self.visit_u64(v as u64)
+        }
+    }
+
+    fn visit_u32<E>(self, v: u32) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_u32) = self.visit_u32 {
+            visit_u32(v).map_err(error::convert)
+        } else {
+            self.visit_u64(v as u64)
+        }
+    }
+
+    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_u64) = self.visit_u64 {
+            visit_u64(v).map_err(error::convert)
+        } else {
+            DefaultVisitor::new(&self).visit_u64(v)
+        }
+    }
+
+    fn visit_u128<E>(self, v: u128) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_u128) = self.visit_u128 {
+            visit_u128(v).map_err(error::convert)
+        } else {
+            DefaultVisitor::new(&self).visit_u128(v)
+        }
+    }
+
+    fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_f32) = self.visit_f32 {
+            visit_f32(v).map_err(error::convert)
+        } else {
+            self.visit_f64(v as f64)
+        }
+    }
+
+    fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_f64) = self.visit_f64 {
+            visit_f64(v).map_err(error::convert)
+        } else {
+            DefaultVisitor::new(&self).visit_f64(v)
+        }
+    }
+
+    fn visit_char<E>(self, v: char) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_char) = self.visit_char {
+            visit_char(v).map_err(error::convert)
+        } else {
+            self.visit_str(v.encode_utf8(&mut [0u8; 4]))
+        }
+    }
+
     fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
@@ -198,6 +352,50 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
             visit_borrowed_str(v).map_err(error::convert)
         } else {
             self.visit_str(v)
+        }
+    }
+
+    fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_bytes) = self.visit_bytes {
+            visit_bytes(v).map_err(error::convert)
+        } else {
+            DefaultVisitor::new(&self).visit_bytes(v)
+        }
+    }
+
+    fn visit_borrowed_bytes<E>(self, v: &'de [u8]) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_borrowed_bytes) = self.visit_borrowed_bytes {
+            visit_borrowed_bytes(v).map_err(error::convert)
+        } else {
+            self.visit_bytes(v)
+        }
+    }
+
+    fn visit_byte_buf<E>(self, v: Vec<u8>) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_byte_buf) = self.visit_byte_buf {
+            visit_byte_buf(v).map_err(error::convert)
+        } else {
+            self.visit_bytes(&v)
+        }
+    }
+
+    fn visit_unit<E>(self) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_unit) = self.visit_unit {
+            visit_unit().map_err(error::convert)
+        } else {
+            DefaultVisitor::new(&self).visit_unit()
         }
     }
 }
