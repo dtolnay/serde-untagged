@@ -1,7 +1,27 @@
 use serde::de::Expected;
 use std::fmt::{self, Debug, Display};
 
-pub enum Error {
+pub struct Error {
+    imp: ErrorImpl,
+}
+
+impl std::error::Error for Error {}
+
+impl Display for Error {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        let error = self.as_serde::<serde::de::value::Error>();
+        Display::fmt(&error, formatter)
+    }
+}
+
+impl Debug for Error {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        let error = self.as_serde::<serde::de::value::Error>();
+        Debug::fmt(&error, formatter)
+    }
+}
+
+enum ErrorImpl {
     Custom(String),
     InvalidType {
         unexpected: Unexpected,
@@ -31,23 +51,7 @@ pub enum Error {
     },
 }
 
-impl std::error::Error for Error {}
-
-impl Display for Error {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        let error = self.as_serde::<serde::de::value::Error>();
-        Display::fmt(&error, formatter)
-    }
-}
-
-impl Debug for Error {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        let error = self.as_serde::<serde::de::value::Error>();
-        Debug::fmt(&error, formatter)
-    }
-}
-
-pub enum Unexpected {
+enum Unexpected {
     Bool(bool),
     Unsigned(u64),
     Signed(i64),
@@ -70,70 +74,82 @@ pub enum Unexpected {
 
 impl serde::de::Error for Error {
     fn custom<T: Display>(msg: T) -> Self {
-        Error::Custom(msg.to_string())
+        let imp = ErrorImpl::Custom(msg.to_string());
+        Error { imp }
     }
 
     fn invalid_type(unexpected: serde::de::Unexpected, expected: &dyn Expected) -> Self {
-        Error::InvalidType {
+        let imp = ErrorImpl::InvalidType {
             unexpected: Unexpected::from_serde(unexpected),
             expected: expected.to_string(),
-        }
+        };
+        Error { imp }
     }
 
     fn invalid_value(unexpected: serde::de::Unexpected, expected: &dyn Expected) -> Self {
-        Error::InvalidValue {
+        let imp = ErrorImpl::InvalidValue {
             unexpected: Unexpected::from_serde(unexpected),
             expected: expected.to_string(),
-        }
+        };
+        Error { imp }
     }
 
     fn invalid_length(len: usize, expected: &dyn Expected) -> Self {
-        Error::InvalidLength {
+        let imp = ErrorImpl::InvalidLength {
             len,
             expected: expected.to_string(),
-        }
+        };
+        Error { imp }
     }
 
     fn unknown_variant(variant: &str, expected: &'static [&'static str]) -> Self {
-        Error::UnknownVariant {
+        let imp = ErrorImpl::UnknownVariant {
             variant: variant.to_owned(),
             expected,
-        }
+        };
+        Error { imp }
     }
 
     fn unknown_field(field: &str, expected: &'static [&'static str]) -> Self {
-        Error::UnknownField {
+        let imp = ErrorImpl::UnknownField {
             field: field.to_owned(),
             expected,
-        }
+        };
+        Error { imp }
     }
 
     fn missing_field(field: &'static str) -> Self {
-        Error::MissingField { field }
+        let imp = ErrorImpl::MissingField { field };
+        Error { imp }
     }
 
     fn duplicate_field(field: &'static str) -> Self {
-        Error::DuplicateField { field }
+        let imp = ErrorImpl::DuplicateField { field };
+        Error { imp }
     }
 }
 
 impl Error {
     fn as_serde<E: serde::de::Error>(&self) -> E {
-        match self {
-            Error::Custom(msg) => E::custom(msg),
-            Error::InvalidType {
+        match &self.imp {
+            ErrorImpl::Custom(msg) => E::custom(msg),
+            ErrorImpl::InvalidType {
                 unexpected,
                 expected,
             } => E::invalid_type(unexpected.as_serde(), &expected.as_str()),
-            Error::InvalidValue {
+            ErrorImpl::InvalidValue {
                 unexpected,
                 expected,
             } => E::invalid_value(unexpected.as_serde(), &expected.as_str()),
-            Error::InvalidLength { len, expected } => E::invalid_length(*len, &expected.as_str()),
-            Error::UnknownVariant { variant, expected } => E::unknown_variant(variant, expected),
-            Error::UnknownField { field, expected } => E::unknown_field(field, expected),
-            Error::MissingField { field } => E::missing_field(field),
-            Error::DuplicateField { field } => E::duplicate_field(field),
+            ErrorImpl::InvalidLength { len, expected } => {
+                E::invalid_length(*len, &expected.as_str())
+            }
+            ErrorImpl::UnknownVariant { variant, expected } => {
+                E::unknown_variant(variant, expected)
+            }
+            ErrorImpl::UnknownField { field, expected } => E::unknown_field(field, expected),
+            ErrorImpl::MissingField { field } => E::missing_field(field),
+            ErrorImpl::DuplicateField { field } => E::duplicate_field(field),
         }
     }
 }

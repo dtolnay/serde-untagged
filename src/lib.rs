@@ -4,6 +4,8 @@ use serde::de::{Deserializer, Visitor};
 use std::fmt;
 use std::marker::PhantomData;
 
+pub use crate::error::Error;
+
 pub struct UntaggedEnumVisitor<Value> {
     value: PhantomData<Value>,
 }
