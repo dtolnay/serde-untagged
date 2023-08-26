@@ -1,6 +1,6 @@
 mod error;
 
-use serde::de::{Deserializer, Expected, Visitor};
+use serde::de::{DeserializeSeed, Deserializer, Expected, Visitor};
 use std::fmt;
 use std::marker::PhantomData;
 use std::mem;
@@ -454,5 +454,40 @@ impl ErasedValue {
 impl Drop for ErasedValue {
     fn drop(&mut self) {
         unsafe { (self.drop)(self.ptr) }
+    }
+}
+
+trait ErasedDeserializeSeed<'de> {
+    fn erased_deserialize(
+        &mut self,
+        deserializer: Box<dyn erased_serde::Deserializer<'de> + '_>,
+    ) -> Result<ErasedValue, erased_serde::Error>;
+}
+
+impl<'de, Seed> ErasedDeserializeSeed<'de> for Option<Seed>
+where
+    Seed: serde::de::DeserializeSeed<'de>,
+{
+    fn erased_deserialize(
+        &mut self,
+        deserializer: Box<dyn erased_serde::Deserializer<'de> + '_>,
+    ) -> Result<ErasedValue, erased_serde::Error> {
+        self.take()
+            .unwrap()
+            .deserialize(deserializer)
+            .map(|value| unsafe { ErasedValue::new(value) })
+    }
+}
+
+impl<'de> DeserializeSeed<'de> for &mut dyn ErasedDeserializeSeed<'de> {
+    type Value = ErasedValue;
+
+    fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let deserializer = Box::new(<dyn erased_serde::Deserializer>::erase(deserializer));
+        self.erased_deserialize(deserializer)
+            .map_err(serde::de::Error::custom)
     }
 }

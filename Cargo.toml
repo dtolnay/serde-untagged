@@ -4,4 +4,5 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
+erased-serde = "0.3"
 serde = "1"
