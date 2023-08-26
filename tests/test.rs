@@ -1,4 +1,5 @@
 use serde::de::{Deserialize, Deserializer, SeqAccess};
+use serde_json::json;
 use serde_untagged::UntaggedEnumVisitor;
 
 #[test]
@@ -63,4 +64,39 @@ fn test_borrowed() {
     let j = &r#" ["a","z"] "#.to_owned();
     let v: Value = serde_json::from_str(j).unwrap();
     assert_eq!(v, Value::Multiple(vec!["a", "z"]));
+}
+
+#[test]
+fn test_contains_map_key() {
+    #[derive(PartialEq, Debug)]
+    enum Response {
+        Success(serde_json::Value),
+        Failure(String),
+    }
+
+    impl<'de> Deserialize<'de> for Response {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            UntaggedEnumVisitor::new()
+                .map(|map| {
+                    let value: serde_json::Value = map.deserialize()?;
+                    if let Ok(failure) = String::deserialize(&value["failure"]) {
+                        Ok(Response::Failure(failure))
+                    } else {
+                        Ok(Response::Success(value))
+                    }
+                })
+                .deserialize(deserializer)
+        }
+    }
+
+    let j = &r#" {"failure":"..."} "#.to_owned();
+    let v: Response = serde_json::from_str(j).unwrap();
+    assert_eq!(v, Response::Failure("...".to_owned()));
+
+    let j = &r#" {"ok":200} "#.to_owned();
+    let v: Response = serde_json::from_str(j).unwrap();
+    assert_eq!(v, Response::Success(json!({"ok":200})));
 }
