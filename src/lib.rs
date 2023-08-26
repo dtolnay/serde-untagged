@@ -1,7 +1,8 @@
 mod error;
 
-use serde::de::{Deserializer, Visitor};
+use serde::de::{Deserializer, Expected, Visitor};
 use std::fmt;
+use std::marker::PhantomData;
 
 pub use crate::error::Error;
 
@@ -41,20 +42,32 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, Value>
         if let Some(visit_str) = self.visit_str {
             visit_str(v).map_err(error::convert)
         } else {
-            DefaultVisitor(&self).visit_str(v)
+            DefaultVisitor::new(&self).visit_str(v)
         }
     }
 }
 
-struct DefaultVisitor<'a, V>(&'a V);
+struct DefaultVisitor<'a, E, T> {
+    expected: &'a E,
+    value: PhantomData<T>,
+}
 
-impl<'a, 'de, V> Visitor<'de> for DefaultVisitor<'a, V>
+impl<'a, E, T> DefaultVisitor<'a, E, T> {
+    fn new(expected: &'a E) -> Self {
+        DefaultVisitor {
+            expected,
+            value: PhantomData,
+        }
+    }
+}
+
+impl<'a, 'de, V, T> Visitor<'de> for DefaultVisitor<'a, V, T>
 where
-    V: Visitor<'de>,
+    V: Expected,
 {
-    type Value = V::Value;
+    type Value = T;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        self.0.expecting(formatter)
+        self.expected.fmt(formatter)
     }
 }
