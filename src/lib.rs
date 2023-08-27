@@ -183,6 +183,7 @@
 //! ```
 
 #![no_std]
+#![doc(html_root_url = "https://docs.rs/serde-untagged/0.0.0")]
 #![allow(
     clippy::doc_markdown,
     clippy::enum_glob_use,
