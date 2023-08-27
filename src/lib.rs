@@ -262,6 +262,61 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
         }
     }
 
+    /// Provide a message stating what data this untagged enum expects to
+    /// receive.
+    ///
+    /// This is used in error messages when deserialization fails. The message
+    /// should complete the sentence _"This Visitor expects to receive …"_, for
+    /// example the message could be _"an integer, or map containing the keys
+    /// 'min' and 'max'"_. The message should not be capitalized and should not
+    /// end with a period.
+    ///
+    /// ```
+    /// # use serde::de::Deserializer;
+    /// # use serde_untagged::UntaggedEnumVisitor;
+    /// #
+    /// # fn deserialize<'de, D>(deserializer: D) -> Result<(), D::Error>
+    /// # where
+    /// #     D: Deserializer<'de>,
+    /// # {
+    /// #     let max = 1;
+    /// UntaggedEnumVisitor::new()
+    ///     .expecting(format_args!("a string or number between 0 and {max}"))
+    ///     /* ... */
+    ///     .deserialize(deserializer)
+    /// # }
+    /// ```
+    ///
+    /// If `expecting` is not called, then `UntaggedEnumVisitor` constructs a
+    /// default message based on the set of closures given to it.
+    ///
+    /// ```
+    /// # use serde::de::Deserializer;
+    /// # use serde_untagged::UntaggedEnumVisitor;
+    /// #
+    /// # macro_rules! methods {
+    /// #     ($($construct:ident)::*() $(.$name:ident(|$arg:ident| ...))*) => {
+    /// #         $($construct)::*()
+    /// #         $(
+    /// #             .$name(|$arg| unimplemented!())
+    /// #         )*
+    /// #     };
+    /// # }
+    /// #
+    /// # fn deserialize<'de, D>(deserializer: D) -> Result<(), D::Error>
+    /// # where
+    /// #     D: Deserializer<'de>,
+    /// # {
+    /// # methods!(
+    /// // by default, this enum expects "a boolean, string, or map"
+    /// UntaggedEnumVisitor::new()
+    ///     .bool(|b| ...)
+    ///     .string(|s| ...)
+    ///     .map(|m| ...)
+    /// # )
+    ///     .deserialize(deserializer)
+    /// # }
+    /// ```
     #[must_use]
     pub fn expecting(mut self, expecting: impl Display + 'closure) -> Self {
         self.expecting = Some(Box::new(expecting));
