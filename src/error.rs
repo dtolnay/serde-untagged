@@ -1,5 +1,8 @@
+use alloc::borrow::ToOwned;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use core::fmt::{self, Debug, Display};
 use serde::de::Expected;
-use std::fmt::{self, Debug, Display};
 
 pub struct Error {
     imp: ErrorImpl,
@@ -9,7 +12,7 @@ pub(crate) fn convert<E: serde::de::Error>(err: Error) -> E {
     err.as_serde()
 }
 
-impl std::error::Error for Error {}
+impl serde::de::StdError for Error {}
 
 impl Display for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {

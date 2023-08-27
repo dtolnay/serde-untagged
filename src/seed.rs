@@ -1,4 +1,5 @@
 use crate::any::ErasedValue;
+use alloc::boxed::Box;
 use serde::de::{DeserializeSeed, Deserializer};
 
 pub(crate) trait ErasedDeserializeSeed<'de> {

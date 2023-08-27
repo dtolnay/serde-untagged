@@ -1,8 +1,9 @@
+use alloc::boxed::Box;
 #[cfg(any(debug_assertions, miri))]
-use std::any::{self, TypeId};
+use core::any::{self, TypeId};
 #[cfg(any(debug_assertions, miri))]
-use std::marker::PhantomData;
-use std::mem;
+use core::marker::PhantomData;
+use core::mem;
 
 pub(crate) struct ErasedValue {
     ptr: *mut (),

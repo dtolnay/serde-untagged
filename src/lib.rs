@@ -174,6 +174,7 @@
 //! }
 //! ```
 
+#![no_std]
 #![allow(
     clippy::doc_markdown,
     clippy::enum_glob_use,
@@ -185,6 +186,8 @@
     clippy::type_complexity
 )]
 
+extern crate alloc;
+
 mod any;
 mod error;
 mod int;
@@ -195,9 +198,11 @@ mod seq;
 use crate::error::Error;
 use crate::map::Map;
 use crate::seq::Seq;
+use alloc::boxed::Box;
+use alloc::vec::Vec;
+use core::fmt::{self, Display};
+use core::marker::PhantomData;
 use serde::de::{Deserializer, Expected, MapAccess, SeqAccess, Unexpected, Visitor};
-use std::fmt::{self, Display};
-use std::marker::PhantomData;
 
 pub mod de {
     pub use crate::error::Error;
