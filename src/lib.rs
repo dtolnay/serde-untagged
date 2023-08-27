@@ -261,86 +261,103 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
         }
     }
 
+    #[must_use]
     pub fn expecting(mut self, expecting: impl Display + 'closure) -> Self {
         self.expecting = Some(Box::new(expecting));
         self
     }
 
+    #[must_use]
     pub fn bool(mut self, visit: impl FnOnce(bool) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_bool = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn i8(mut self, visit: impl FnOnce(i8) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_i8 = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn i16(mut self, visit: impl FnOnce(i16) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_i16 = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn i32(mut self, visit: impl FnOnce(i32) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_i32 = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn i64(mut self, visit: impl FnOnce(i64) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_i64 = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn i128(mut self, visit: impl FnOnce(i128) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_i128 = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn u8(mut self, visit: impl FnOnce(u8) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_u8 = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn u16(mut self, visit: impl FnOnce(u16) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_u16 = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn u32(mut self, visit: impl FnOnce(u32) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_u32 = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn u64(mut self, visit: impl FnOnce(u64) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_u64 = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn u128(mut self, visit: impl FnOnce(u128) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_u128 = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn f32(mut self, visit: impl FnOnce(f32) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_f32 = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn f64(mut self, visit: impl FnOnce(f64) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_f64 = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn char(mut self, visit: impl FnOnce(char) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_char = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn string(mut self, visit: impl FnOnce(&str) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_str = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn borrowed_str(
         mut self,
         visit: impl FnOnce(&'de str) -> Result<Value, Error> + 'closure,
@@ -349,11 +366,13 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
         self
     }
 
+    #[must_use]
     pub fn bytes(mut self, visit: impl FnOnce(&[u8]) -> Result<Value, Error> + 'closure) -> Self {
         self.visit_bytes = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn borrowed_bytes(
         mut self,
         visit: impl FnOnce(&'de [u8]) -> Result<Value, Error> + 'closure,
@@ -362,6 +381,7 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
         self
     }
 
+    #[must_use]
     pub fn byte_buf(
         mut self,
         visit: impl FnOnce(Vec<u8>) -> Result<Value, Error> + 'closure,
@@ -370,11 +390,13 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
         self
     }
 
+    #[must_use]
     pub fn unit(mut self, visit: impl FnOnce() -> Result<Value, Error> + 'closure) -> Self {
         self.visit_unit = Some(Box::new(visit));
         self
     }
 
+    #[must_use]
     pub fn seq(
         mut self,
         visit: impl for<'access> FnOnce(Seq<'access, 'de>) -> Result<Value, Error> + 'closure,
@@ -383,6 +405,7 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
         self
     }
 
+    #[must_use]
     pub fn map(
         mut self,
         visit: impl for<'access> FnOnce(Map<'access, 'de>) -> Result<Value, Error> + 'closure,
