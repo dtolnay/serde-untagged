@@ -8,7 +8,7 @@ mod seq;
 use crate::error::Error;
 use crate::map::Map;
 use crate::seq::Seq;
-use serde::de::{Deserializer, Expected, MapAccess, SeqAccess, Visitor};
+use serde::de::{Deserializer, Expected, MapAccess, SeqAccess, Unexpected, Visitor};
 use std::fmt::{self, Display};
 use std::marker::PhantomData;
 
@@ -389,8 +389,10 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
     {
         if let Some(visit_char) = self.visit_char {
             visit_char(v).map_err(error::convert)
-        } else {
+        } else if self.visit_str.is_some() {
             self.visit_str(v.encode_utf8(&mut [0u8; 4]))
+        } else {
+            Err(E::invalid_type(Unexpected::Char(v), &self))
         }
     }
 
