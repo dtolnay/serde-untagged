@@ -26,6 +26,7 @@ impl<'access, 'de> Seq<'access, 'de> {
         }
     }
 
+    /// Shorthand for `T::deserialize(serde::de::value::SeqAccessDeserializer::new(self))`.
     pub fn deserialize<T>(self) -> Result<T, Error>
     where
         T: Deserialize<'de>,

@@ -31,6 +31,7 @@ impl<'access, 'de> Map<'access, 'de> {
         }
     }
 
+    /// Shorthand for `T::deserialize(serde::de::value::MapAccessDeserializer::new(self))`.
     pub fn deserialize<T>(self) -> Result<T, Error>
     where
         T: Deserialize<'de>,
