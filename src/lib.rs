@@ -452,6 +452,8 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
         self
     }
 
+    /// Deserialize a sequence. The argument implements
+    /// [`serde::de::SeqAccess`].
     #[must_use]
     pub fn seq(
         mut self,
@@ -461,6 +463,31 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
         self
     }
 
+    /// Deserialize a key-value map. The argument implements
+    /// [`serde::de::MapAccess`].
+    ///
+    /// ```
+    /// # use serde::de::Deserializer;
+    /// use serde::de::MapAccess;
+    /// use serde_untagged::UntaggedEnumVisitor;
+    /// use std::collections::HashMap;
+    ///
+    /// # fn deserialize<'de, D>(deserializer: D) -> Result<HashMap<i32, i32>, D::Error>
+    /// # where
+    /// #     D: Deserializer<'de>,
+    /// # {
+    /// UntaggedEnumVisitor::new()
+    ///     .map(|mut map| {
+    ///         let mut hashmap = HashMap::new();
+    ///         while let Some(key) = map.next_key()? {
+    ///             let value = map.next_value()?;
+    ///             hashmap.insert(key, value);
+    ///         }
+    ///         Ok(hashmap)
+    ///     })
+    ///     .deserialize(deserializer)
+    /// # }
+    /// ```
     #[must_use]
     pub fn map(
         mut self,
