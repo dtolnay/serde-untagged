@@ -25,7 +25,7 @@ impl ErasedValue {
     }
 
     pub(crate) unsafe fn take<T>(self) -> T {
-        if cfg!(debug_assertions) && self.type_id != non_static_type_id::<T>() {
+        if cfg!(any(debug_assertions, miri)) && self.type_id != non_static_type_id::<T>() {
             panic!(
                 "ErasedValue mismatch: {} vs {}",
                 self.type_name,
