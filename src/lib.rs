@@ -174,7 +174,7 @@
 //! }
 //! ```
 
-#![allow(clippy::doc_markdown)]
+#![allow(clippy::doc_markdown, clippy::enum_glob_use)]
 
 mod any;
 mod error;
