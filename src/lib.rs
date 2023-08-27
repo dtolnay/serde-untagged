@@ -174,7 +174,12 @@
 //! }
 //! ```
 
-#![allow(clippy::doc_markdown, clippy::enum_glob_use, clippy::manual_map)]
+#![allow(
+    clippy::doc_markdown,
+    clippy::enum_glob_use,
+    clippy::manual_map,
+    clippy::missing_errors_doc
+)]
 
 mod any;
 mod error;
