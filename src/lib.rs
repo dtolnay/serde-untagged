@@ -174,6 +174,8 @@
 //! }
 //! ```
 
+#![allow(clippy::doc_markdown)]
+
 mod any;
 mod error;
 mod int;
