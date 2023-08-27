@@ -544,7 +544,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         if let Some(visit_f32) = self.visit_f32 {
             visit_f32(v).map_err(error::convert)
         } else {
-            self.visit_f64(v as f64)
+            self.visit_f64(f64::from(v))
         }
     }
 
