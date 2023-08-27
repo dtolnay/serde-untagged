@@ -11,7 +11,7 @@ deserializing untagged enums.
 
 ```toml
 [dependencies]
-serde-untagged = "0.0"
+serde-untagged = "0.1"
 ```
 
 <br>

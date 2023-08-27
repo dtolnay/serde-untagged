@@ -1,6 +1,6 @@
 [package]
 name = "serde-untagged"
-version = "0.0.0"
+version = "0.1.0"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 categories = ["encoding", "no-std"]
 description = "Serde `Visitor` implementation for deserializing untagged enums"
