@@ -1,7 +1,15 @@
 [package]
 name = "serde-untagged"
 version = "0.0.0"
+authors = ["David Tolnay <dtolnay@gmail.com>"]
+categories = ["encoding"]
+description = "Serde `Visitor` implementation for deserializing untagged enums"
+documentation = "https://docs.rs/serde-untagged"
 edition = "2021"
+keywords = ["serde", "untagged"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/dtolnay/serde-untagged"
+rust-version = "1.56"
 
 [dependencies]
 erased-serde = "0.3"
