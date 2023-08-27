@@ -1,5 +1,6 @@
 mod any;
 mod error;
+mod int;
 mod map;
 mod seed;
 mod seq;
@@ -284,110 +285,80 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
     where
         E: serde::de::Error,
     {
-        if let Some(visit_i8) = self.visit_i8 {
-            visit_i8(v).map_err(error::convert)
-        } else {
-            self.visit_i64(v as i64)
-        }
+        use crate::int::IntKind::*;
+        self.dispatch_integer(v, [I8, I16, I32, I64, I128, U8, U16, U32, U64, U128])
     }
 
     fn visit_i16<E>(self, v: i16) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        if let Some(visit_i16) = self.visit_i16 {
-            visit_i16(v).map_err(error::convert)
-        } else {
-            self.visit_i64(v as i64)
-        }
+        use crate::int::IntKind::*;
+        self.dispatch_integer(v, [I16, I32, I64, I128, I8, U8, U16, U32, U64, U128])
     }
 
     fn visit_i32<E>(self, v: i32) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        if let Some(visit_i32) = self.visit_i32 {
-            visit_i32(v).map_err(error::convert)
-        } else {
-            self.visit_i64(v as i64)
-        }
+        use crate::int::IntKind::*;
+        self.dispatch_integer(v, [I32, I64, I128, I8, I16, U8, U16, U32, U64, U128])
     }
 
     fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        if let Some(visit_i64) = self.visit_i64 {
-            visit_i64(v).map_err(error::convert)
-        } else {
-            DefaultVisitor::new(&self).visit_i64(v)
-        }
+        use crate::int::IntKind::*;
+        self.dispatch_integer(v, [I64, I128, I8, I16, I32, U8, U16, U32, U64, U128])
     }
 
     fn visit_i128<E>(self, v: i128) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        if let Some(visit_i128) = self.visit_i128 {
-            visit_i128(v).map_err(error::convert)
-        } else {
-            DefaultVisitor::new(&self).visit_i128(v)
-        }
+        use crate::int::IntKind::*;
+        self.dispatch_integer(v, [I128, I8, I16, I32, I64, U8, U16, U32, U64, U128])
     }
 
     fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        if let Some(visit_u8) = self.visit_u8 {
-            visit_u8(v).map_err(error::convert)
-        } else {
-            self.visit_u64(v as u64)
-        }
+        use crate::int::IntKind::*;
+        self.dispatch_integer(v, [U8, U16, U32, U64, U128, I8, I16, I32, I64, I128])
     }
 
     fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        if let Some(visit_u16) = self.visit_u16 {
-            visit_u16(v).map_err(error::convert)
-        } else {
-            self.visit_u64(v as u64)
-        }
+        use crate::int::IntKind::*;
+        self.dispatch_integer(v, [U16, U32, U64, U128, U8, I8, I16, I32, I64, I128])
     }
 
     fn visit_u32<E>(self, v: u32) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        if let Some(visit_u32) = self.visit_u32 {
-            visit_u32(v).map_err(error::convert)
-        } else {
-            self.visit_u64(v as u64)
-        }
+        use crate::int::IntKind::*;
+        self.dispatch_integer(v, [U32, U64, U128, U8, U16, I8, I16, I32, I64, I128])
     }
 
     fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        if let Some(visit_u64) = self.visit_u64 {
-            visit_u64(v).map_err(error::convert)
-        } else {
-            DefaultVisitor::new(&self).visit_u64(v)
-        }
+        use crate::int::IntKind::*;
+        self.dispatch_integer(v, [U64, U128, U8, U16, U32, I8, I16, I32, I64, I128])
     }
 
     fn visit_u128<E>(self, v: u128) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        if let Some(visit_u128) = self.visit_u128 {
-            visit_u128(v).map_err(error::convert)
-        } else {
-            DefaultVisitor::new(&self).visit_u128(v)
-        }
+        use crate::int::IntKind::*;
+        self.dispatch_integer(v, [U128, U8, U16, U32, U64, I8, I16, I32, I64, I128])
     }
 
     fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E>
