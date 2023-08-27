@@ -179,7 +179,8 @@
     clippy::enum_glob_use,
     clippy::manual_map,
     clippy::missing_errors_doc,
-    clippy::must_use_candidate
+    clippy::must_use_candidate,
+    clippy::needless_pass_by_value
 )]
 
 mod any;
