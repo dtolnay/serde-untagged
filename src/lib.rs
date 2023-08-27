@@ -181,7 +181,8 @@
     clippy::missing_errors_doc,
     clippy::must_use_candidate,
     clippy::needless_pass_by_value,
-    clippy::new_without_default
+    clippy::new_without_default,
+    clippy::type_complexity
 )]
 
 mod any;
