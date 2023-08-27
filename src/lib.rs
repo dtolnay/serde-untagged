@@ -488,6 +488,40 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
     ///     .deserialize(deserializer)
     /// # }
     /// ```
+    ///
+    /// If you need to inspect the contents of the map to decide how to
+    /// deserialize, you can buffer it into some kind of `Value` and deserialize
+    /// from there.
+    ///
+    /// ```
+    /// # use serde::de::{Deserialize, Deserializer};
+    /// # use serde_untagged::UntaggedEnumVisitor;
+    /// #
+    /// enum Response {
+    ///     // {"failure":"..."}
+    ///     Failure(String),
+    ///     // Anything else. {"ok":200}
+    ///     Success(serde_json::Value),
+    /// }
+    ///
+    /// impl<'de> Deserialize<'de> for Response {
+    ///     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    ///     where
+    ///         D: Deserializer<'de>,
+    ///     {
+    ///         UntaggedEnumVisitor::new()
+    ///             .map(|map| {
+    ///                 let value: serde_json::Value = map.deserialize()?;
+    ///                 if let Some(failure) = value["failure"].as_str() {
+    ///                     Ok(Response::Failure(failure.to_owned()))
+    ///                 } else {
+    ///                     Ok(Response::Success(value))
+    ///                 }
+    ///             })
+    ///             .deserialize(deserializer)
+    ///     }
+    /// }
+    /// ```
     #[must_use]
     pub fn map(
         mut self,
