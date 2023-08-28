@@ -187,8 +187,10 @@
 #![allow(
     clippy::doc_markdown,
     clippy::enum_glob_use,
+    clippy::manual_assert,
     clippy::manual_map,
     clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
     clippy::must_use_candidate,
     clippy::needless_pass_by_value,
     clippy::new_without_default,
@@ -333,96 +335,144 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
     /// ```
     #[must_use]
     pub fn expecting(mut self, expecting: impl Display + 'closure) -> Self {
+        if self.expecting.is_some() {
+            panic!("UntaggedEnumVisitor::expecting already set");
+        }
         self.expecting = Some(Box::new(expecting));
         self
     }
 
     #[must_use]
     pub fn bool(mut self, visit: impl FnOnce(bool) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_bool.is_some() {
+            panic!("UntaggedEnumVisitor::bool already set");
+        }
         self.visit_bool = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn i8(mut self, visit: impl FnOnce(i8) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_i8.is_some() {
+            panic!("UntaggedEnumVisitor::i8 already set");
+        }
         self.visit_i8 = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn i16(mut self, visit: impl FnOnce(i16) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_i16.is_some() {
+            panic!("UntaggedEnumVisitor::i16 already set");
+        }
         self.visit_i16 = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn i32(mut self, visit: impl FnOnce(i32) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_i32.is_some() {
+            panic!("UntaggedEnumVisitor::i32 already set");
+        }
         self.visit_i32 = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn i64(mut self, visit: impl FnOnce(i64) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_i64.is_some() {
+            panic!("UntaggedEnumVisitor::i64 already set");
+        }
         self.visit_i64 = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn i128(mut self, visit: impl FnOnce(i128) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_i128.is_some() {
+            panic!("UntaggedEnumVisitor::i128 already set");
+        }
         self.visit_i128 = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn u8(mut self, visit: impl FnOnce(u8) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_u8.is_some() {
+            panic!("UntaggedEnumVisitor::u8 already set");
+        }
         self.visit_u8 = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn u16(mut self, visit: impl FnOnce(u16) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_u16.is_some() {
+            panic!("UntaggedEnumVisitor::u16 already set");
+        }
         self.visit_u16 = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn u32(mut self, visit: impl FnOnce(u32) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_u32.is_some() {
+            panic!("UntaggedEnumVisitor::u32 already set");
+        }
         self.visit_u32 = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn u64(mut self, visit: impl FnOnce(u64) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_u64.is_some() {
+            panic!("UntaggedEnumVisitor::u64 already set");
+        }
         self.visit_u64 = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn u128(mut self, visit: impl FnOnce(u128) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_u128.is_some() {
+            panic!("UntaggedEnumVisitor::u128 already set");
+        }
         self.visit_u128 = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn f32(mut self, visit: impl FnOnce(f32) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_f32.is_some() {
+            panic!("UntaggedEnumVisitor::f32 already set");
+        }
         self.visit_f32 = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn f64(mut self, visit: impl FnOnce(f64) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_f64.is_some() {
+            panic!("UntaggedEnumVisitor::f64 already set");
+        }
         self.visit_f64 = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn char(mut self, visit: impl FnOnce(char) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_char.is_some() {
+            panic!("UntaggedEnumVisitor::char already set");
+        }
         self.visit_char = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn string(mut self, visit: impl FnOnce(&str) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_str.is_some() {
+            panic!("UntaggedEnumVisitor::string already set");
+        }
         self.visit_str = Some(Box::new(visit));
         self
     }
@@ -432,12 +482,18 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
         mut self,
         visit: impl FnOnce(&'de str) -> Result<Value, Error> + 'closure,
     ) -> Self {
+        if self.visit_borrowed_str.is_some() {
+            panic!("UntaggedEnumVisitor::borrowed_str already set");
+        }
         self.visit_borrowed_str = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn bytes(mut self, visit: impl FnOnce(&[u8]) -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_bytes.is_some() {
+            panic!("UntaggedEnumVisitor::bytes already set");
+        }
         self.visit_bytes = Some(Box::new(visit));
         self
     }
@@ -447,6 +503,9 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
         mut self,
         visit: impl FnOnce(&'de [u8]) -> Result<Value, Error> + 'closure,
     ) -> Self {
+        if self.visit_borrowed_bytes.is_some() {
+            panic!("UntaggedEnumVisitor::borrowed_bytes already set");
+        }
         self.visit_borrowed_bytes = Some(Box::new(visit));
         self
     }
@@ -456,12 +515,18 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
         mut self,
         visit: impl FnOnce(Vec<u8>) -> Result<Value, Error> + 'closure,
     ) -> Self {
+        if self.visit_byte_buf.is_some() {
+            panic!("UntaggedEnumVisitor::byte_buf already set");
+        }
         self.visit_byte_buf = Some(Box::new(visit));
         self
     }
 
     #[must_use]
     pub fn unit(mut self, visit: impl FnOnce() -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_unit.is_some() {
+            panic!("UntaggedEnumVisitor::unit already set");
+        }
         self.visit_unit = Some(Box::new(visit));
         self
     }
@@ -473,6 +538,9 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
         mut self,
         visit: impl for<'access> FnOnce(Seq<'access, 'de>) -> Result<Value, Error> + 'closure,
     ) -> Self {
+        if self.visit_seq.is_some() {
+            panic!("UntaggedEnumVisitor::seq already set");
+        }
         self.visit_seq = Some(Box::new(visit));
         self
     }
@@ -541,6 +609,9 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
         mut self,
         visit: impl for<'access> FnOnce(Map<'access, 'de>) -> Result<Value, Error> + 'closure,
     ) -> Self {
+        if self.visit_map.is_some() {
+            panic!("UntaggedEnumVisitor::map already set");
+        }
         self.visit_map = Some(Box::new(visit));
         self
     }
