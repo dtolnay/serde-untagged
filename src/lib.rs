@@ -187,6 +187,7 @@
 #![allow(
     clippy::doc_markdown,
     clippy::enum_glob_use,
+    clippy::manual_assert,
     clippy::manual_map,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
