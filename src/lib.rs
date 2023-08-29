@@ -686,7 +686,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         E: serde::de::Error,
     {
         if let Some(visit_bool) = self.visit_bool {
-            visit_bool(v).map_err(error::convert)
+            visit_bool(v).map_err(error::unerase)
         } else {
             DefaultVisitor::new(&self).visit_bool(v)
         }
@@ -777,7 +777,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         E: serde::de::Error,
     {
         if let Some(visit_f32) = self.visit_f32 {
-            visit_f32(v).map_err(error::convert)
+            visit_f32(v).map_err(error::unerase)
         } else {
             self.visit_f64(f64::from(v))
         }
@@ -788,7 +788,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         E: serde::de::Error,
     {
         if let Some(visit_f64) = self.visit_f64 {
-            visit_f64(v).map_err(error::convert)
+            visit_f64(v).map_err(error::unerase)
         } else {
             DefaultVisitor::new(&self).visit_f64(v)
         }
@@ -799,7 +799,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         E: serde::de::Error,
     {
         if let Some(visit_char) = self.visit_char {
-            visit_char(v).map_err(error::convert)
+            visit_char(v).map_err(error::unerase)
         } else if self.visit_str.is_some() {
             self.visit_str(v.encode_utf8(&mut [0u8; 4]))
         } else {
@@ -812,7 +812,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         E: serde::de::Error,
     {
         if let Some(visit_str) = self.visit_str {
-            visit_str(v).map_err(error::convert)
+            visit_str(v).map_err(error::unerase)
         } else {
             DefaultVisitor::new(&self).visit_str(v)
         }
@@ -823,7 +823,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         E: serde::de::Error,
     {
         if let Some(visit_borrowed_str) = self.visit_borrowed_str {
-            visit_borrowed_str(v).map_err(error::convert)
+            visit_borrowed_str(v).map_err(error::unerase)
         } else {
             self.visit_str(v)
         }
@@ -834,7 +834,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         E: serde::de::Error,
     {
         if let Some(visit_bytes) = self.visit_bytes {
-            visit_bytes(v).map_err(error::convert)
+            visit_bytes(v).map_err(error::unerase)
         } else {
             DefaultVisitor::new(&self).visit_bytes(v)
         }
@@ -845,7 +845,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         E: serde::de::Error,
     {
         if let Some(visit_borrowed_bytes) = self.visit_borrowed_bytes {
-            visit_borrowed_bytes(v).map_err(error::convert)
+            visit_borrowed_bytes(v).map_err(error::unerase)
         } else {
             self.visit_bytes(v)
         }
@@ -856,7 +856,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         E: serde::de::Error,
     {
         if let Some(visit_byte_buf) = self.visit_byte_buf {
-            visit_byte_buf(v).map_err(error::convert)
+            visit_byte_buf(v).map_err(error::unerase)
         } else {
             self.visit_bytes(&v)
         }
@@ -867,7 +867,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         E: serde::de::Error,
     {
         if let Some(visit_unit) = self.visit_unit {
-            visit_unit().map_err(error::convert)
+            visit_unit().map_err(error::unerase)
         } else {
             DefaultVisitor::new(&self).visit_unit()
         }
@@ -878,7 +878,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         A: SeqAccess<'de>,
     {
         if let Some(visit_seq) = self.visit_seq {
-            visit_seq(Seq::new(seq)).map_err(error::convert)
+            visit_seq(Seq::new(seq)).map_err(error::unerase)
         } else {
             DefaultVisitor::new(&self).visit_seq(seq)
         }
@@ -889,7 +889,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         A: MapAccess<'de>,
     {
         if let Some(visit_map) = self.visit_map {
-            visit_map(Map::new(map)).map_err(error::convert)
+            visit_map(Map::new(map)).map_err(error::unerase)
         } else {
             DefaultVisitor::new(&self).visit_map(map)
         }

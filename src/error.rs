@@ -8,7 +8,7 @@ pub struct Error {
     imp: ErrorImpl,
 }
 
-pub(crate) fn convert<E: serde::de::Error>(err: Error) -> E {
+pub(crate) fn unerase<E: serde::de::Error>(err: Error) -> E {
     err.as_serde()
 }
 

@@ -61,70 +61,70 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
                 IntKind::I8 => {
                     if let Some(int) = i8::int_from(value) {
                         if let Some(visit_i8) = self.visit_i8 {
-                            return visit_i8(int).map_err(error::convert);
+                            return visit_i8(int).map_err(error::unerase);
                         }
                     }
                 }
                 IntKind::I16 => {
                     if let Some(int) = i16::int_from(value) {
                         if let Some(visit_i16) = self.visit_i16 {
-                            return visit_i16(int).map_err(error::convert);
+                            return visit_i16(int).map_err(error::unerase);
                         }
                     }
                 }
                 IntKind::I32 => {
                     if let Some(int) = i32::int_from(value) {
                         if let Some(visit_i32) = self.visit_i32 {
-                            return visit_i32(int).map_err(error::convert);
+                            return visit_i32(int).map_err(error::unerase);
                         }
                     }
                 }
                 IntKind::I64 => {
                     if let Some(int) = i64::int_from(value) {
                         if let Some(visit_i64) = self.visit_i64 {
-                            return visit_i64(int).map_err(error::convert);
+                            return visit_i64(int).map_err(error::unerase);
                         }
                     }
                 }
                 IntKind::I128 => {
                     if let Some(int) = i128::int_from(value) {
                         if let Some(visit_i128) = self.visit_i128 {
-                            return visit_i128(int).map_err(error::convert);
+                            return visit_i128(int).map_err(error::unerase);
                         }
                     }
                 }
                 IntKind::U8 => {
                     if let Some(int) = u8::int_from(value) {
                         if let Some(visit_u8) = self.visit_u8 {
-                            return visit_u8(int).map_err(error::convert);
+                            return visit_u8(int).map_err(error::unerase);
                         }
                     }
                 }
                 IntKind::U16 => {
                     if let Some(int) = u16::int_from(value) {
                         if let Some(visit_u16) = self.visit_u16 {
-                            return visit_u16(int).map_err(error::convert);
+                            return visit_u16(int).map_err(error::unerase);
                         }
                     }
                 }
                 IntKind::U32 => {
                     if let Some(int) = u32::int_from(value) {
                         if let Some(visit_u32) = self.visit_u32 {
-                            return visit_u32(int).map_err(error::convert);
+                            return visit_u32(int).map_err(error::unerase);
                         }
                     }
                 }
                 IntKind::U64 => {
                     if let Some(int) = u64::int_from(value) {
                         if let Some(visit_u64) = self.visit_u64 {
-                            return visit_u64(int).map_err(error::convert);
+                            return visit_u64(int).map_err(error::unerase);
                         }
                     }
                 }
                 IntKind::U128 => {
                     if let Some(int) = u128::int_from(value) {
                         if let Some(visit_u128) = self.visit_u128 {
-                            return visit_u128(int).map_err(error::convert);
+                            return visit_u128(int).map_err(error::unerase);
                         }
                     }
                 }
