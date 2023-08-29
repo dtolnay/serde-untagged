@@ -1,5 +1,5 @@
 use crate::any::ErasedValue;
-use crate::error::Error;
+use crate::error::{self, Error};
 use crate::seed::ErasedDeserializeSeed;
 use alloc::boxed::Box;
 use serde::de::{Deserialize, DeserializeSeed, SeqAccess};
@@ -64,8 +64,7 @@ where
         &mut self,
         seed: &mut dyn ErasedDeserializeSeed<'de>,
     ) -> Result<Option<ErasedValue>, Error> {
-        self.next_element_seed(seed)
-            .map_err(serde::de::Error::custom)
+        self.next_element_seed(seed).map_err(error::erase)
     }
 
     fn erased_size_hint(&self) -> Option<usize> {
