@@ -12,7 +12,7 @@ repository = "https://github.com/dtolnay/serde-untagged"
 rust-version = "1.56"
 
 [dependencies]
-erased-serde = { version = "0.3.30", default-features = false, features = ["alloc"] }
+erased-serde = { version = "=0.4.0-rc.1", default-features = false, features = ["alloc"] }
 serde = { version = "1", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]
