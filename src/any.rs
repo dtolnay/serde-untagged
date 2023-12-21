@@ -20,7 +20,7 @@ impl ErasedValue {
             ptr: Box::into_raw(Box::new(value)).cast(),
             drop: {
                 unsafe fn drop<T>(ptr: *mut ()) {
-                    let _ = Box::from_raw(ptr.cast::<T>());
+                    let _ = unsafe { Box::from_raw(ptr.cast::<T>()) };
                 }
                 drop::<T>
             },
@@ -41,7 +41,7 @@ impl ErasedValue {
             any::type_name::<T>(),
         );
 
-        let b = Box::from_raw(self.ptr.cast::<T>());
+        let b = unsafe { Box::from_raw(self.ptr.cast::<T>()) };
         mem::forget(self);
         *b
     }
