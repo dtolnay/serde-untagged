@@ -12,12 +12,12 @@ repository = "https://github.com/dtolnay/serde-untagged"
 rust-version = "1.56"
 
 [dependencies]
-erased-serde = { version = "0.4", default-features = false, features = ["alloc"] }
-serde = { version = "1", default-features = false, features = ["alloc"] }
+erased-serde = { version = "0.4.2", default-features = false, features = ["alloc"] }
+serde = { version = "1.0.194", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]
-serde_derive = "1"
-serde_json = "1"
+serde_derive = "1.0.194"
+serde_json = "1.0.110"
 toml = "0.8"
 
 [lib]
