@@ -9,7 +9,7 @@ edition = "2021"
 keywords = ["serde", "untagged"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/dtolnay/serde-untagged"
-rust-version = "1.56"
+rust-version = "1.61"
 
 [dependencies]
 erased-serde = { version = "0.4.2", default-features = false, features = ["alloc"] }
