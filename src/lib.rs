@@ -187,6 +187,7 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![allow(
     clippy::doc_markdown,
+    clippy::elidable_lifetime_names,
     clippy::enum_glob_use,
     clippy::manual_assert,
     clippy::manual_map,
