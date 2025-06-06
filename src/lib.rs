@@ -199,6 +199,7 @@
     clippy::new_without_default,
     clippy::type_complexity
 )]
+#![allow(unknown_lints, mismatched_lifetime_syntaxes)]
 
 extern crate alloc;
 
