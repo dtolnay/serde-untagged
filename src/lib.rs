@@ -246,6 +246,7 @@ pub struct UntaggedEnumVisitor<'closure, 'de, Value> {
     visit_bytes: Option<Box<dyn FnOnce(&[u8]) -> Result<Value, Error> + 'closure>>,
     visit_borrowed_bytes: Option<Box<dyn FnOnce(&'de [u8]) -> Result<Value, Error> + 'closure>>,
     visit_byte_buf: Option<Box<dyn FnOnce(Vec<u8>) -> Result<Value, Error> + 'closure>>,
+    visit_none: Option<Box<dyn FnOnce() -> Result<Value, Error> + 'closure>>,
     visit_unit: Option<Box<dyn FnOnce() -> Result<Value, Error> + 'closure>>,
     visit_seq:
         Option<Box<dyn for<'access> FnOnce(Seq<'access, 'de>) -> Result<Value, Error> + 'closure>>,
@@ -276,6 +277,7 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
             visit_bytes: None,
             visit_borrowed_bytes: None,
             visit_byte_buf: None,
+            visit_none: None,
             visit_unit: None,
             visit_seq: None,
             visit_map: None,
@@ -523,6 +525,15 @@ impl<'closure, 'de, Value> UntaggedEnumVisitor<'closure, 'de, Value> {
             panic!("UntaggedEnumVisitor::byte_buf already set");
         }
         self.visit_byte_buf = Some(Box::new(visit));
+        self
+    }
+
+    #[must_use]
+    pub fn none(mut self, visit: impl FnOnce() -> Result<Value, Error> + 'closure) -> Self {
+        if self.visit_none.is_some() {
+            panic!("UntaggedEnumVisitor::none already set");
+        }
+        self.visit_none = Some(Box::new(visit));
         self
     }
 
@@ -863,6 +874,17 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
             visit_byte_buf(v).map_err(error::unerase)
         } else {
             self.visit_bytes(&v)
+        }
+    }
+
+    fn visit_none<E>(self) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        if let Some(visit_none) = self.visit_none {
+            visit_none().map_err(error::unerase)
+        } else {
+            DefaultVisitor::new(&self).visit_none()
         }
     }
 
