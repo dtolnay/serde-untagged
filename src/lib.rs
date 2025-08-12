@@ -684,7 +684,7 @@ impl<'closure, 'de, Value> Visitor<'de> for UntaggedEnumVisitor<'closure, 'de, V
         {
             message.push("a", "byte array")?;
         }
-        if self.visit_unit.is_some() {
+        if self.visit_unit.is_some() || self.visit_none.is_some() {
             message.push("", "null")?;
         }
         if self.visit_seq.is_some() {
