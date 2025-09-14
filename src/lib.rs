@@ -202,6 +202,7 @@
 #![allow(unknown_lints, mismatched_lifetime_syntaxes)]
 
 extern crate alloc;
+extern crate serde_core as serde;
 
 mod any;
 mod error;
